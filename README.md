@@ -13,7 +13,8 @@ rest-api Project Utilizes basic jwt authentication. In order to register a user,
 ## Endpoints
 ### Create User (jwt Protected)
 `POST https:\\[base-url]\api\createUser`
+
 | Parameter     | Description                                      |
-| ------------- | :----------------------------------------------- |
+| ------------- |:------------------------------------------------ |
 | name          | Username to be created                           |
 | password      | Password to be associated with the username      |
