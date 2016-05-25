@@ -86,15 +86,24 @@ apiRoutes.get('/getUserName', function(req, res){
     res.json({name: name});
 });
 
-apiRoutes.get('/:userName/data', function(req, res){
+apiRoutes.get('/:userName/tasks', function(req, res){
    User.findOne({'name': req.param('userName')}, function(err, user){
        if (user.data) res.json({data: user.data});
        else res.json({data: {}});
    });
 });
 
-apiRoutes.put('/:userName/data', function(req, res) {
-   User.findOneAndUpdate({'name': req.param('userName')}, {$set: {data: req.body.data}}, function(err, doc){
+apiRoutes.put('/:userName/addTask', function(req, res) {
+   var taskObject = {task: req.body.task, completed: false};
+   User.findOneAndUpdate({'name': req.param('userName')}, {$addToSet: {data: taskObject}}, function(err, doc){
+       if (err) return res.send(500, {error: err});
+       return res.send({success: true});
+   });
+});
+
+// Update a Document inside of Array (Difficulty: Moderate)
+apiRoutes.put('/:userName/completeTask', function(req, res) { // For Help: https://docs.mongodb.com/manual/reference/operator/update/positional/
+   User.findOneAndUpdate({'name': req.param('userName'), 'data.task': req.body.task}, {$set: {'data.$.completed': {completed: true}}}, function(err, doc){
        if (err) return res.send(500, {error: err});
        return res.send({success: true});
    });
@@ -105,7 +114,7 @@ apiRoutes.post('/createUser', function(req, res){
         name: req.body.name,
         password: req.body.password,
         admin: false,
-        data: {}
+        data: []
     });
     newUser.save(function(err){
         if (err) throw err;
@@ -130,7 +139,7 @@ app.get('/setup', function(req, res){
         name: 'kino6052',
         password: 'cat8dog123!',
         admin: true,
-        data: {}
+        data: []
     });
     iolearn.save(function(err){
         if (err)
