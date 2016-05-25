@@ -8,7 +8,7 @@ This project utilizes best practices including, but not limited to, jwt authenti
 The backend for this project is MongoLab, which makes it easy to test the applications you develop and provides great GUI for analyzing data.
 
 ## Authentication
-rest-api Project Utilizes basic jwt authentication. In order to register a user, use POST request to /api/setup with url encoded body parameters `name` and `password`. After this step you should receive a jwt token, that should be included inside of the `x-access-token` header.
+This project utilizes basic jwt authentication. In order to register a user, use `POST` request to `/api/setup` with url encoded body parameters `name` and `password`. After this step you should receive a jwt token, that should be included inside of the `x-access-token` header.
 
 ## User Endpoints
 ### Create User (jwt Protected)
