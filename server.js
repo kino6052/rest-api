@@ -109,6 +109,21 @@ apiRoutes.put('/:userName/completeTask', function(req, res) { // For Help: https
    });
 });
 
+apiRoutes.put('/:userName/uncompleteTask', function(req, res) { // For Help: https://docs.mongodb.com/manual/reference/operator/update/positional/
+   User.findOneAndUpdate({'name': req.param('userName'), 'data.task': req.body.task}, {$set: {'data.$.completed': {completed: false}}}, function(err, doc){
+       if (err) return res.send(500, {error: err});
+       return res.send({success: true});
+   });
+});
+
+
+apiRoutes.delete('/:userName/removeTask', function(req, res) { // For Help: https://docs.mongodb.com/v2.6/reference/operator/update/pull/
+   User.findOneAndUpdate({'name': req.param('userName')}, {$pull: {'data': {task: req.body.task}}}, function(err, doc){
+       if (err) return res.send(500, {error: err});
+       return res.send({success: true});
+   });
+});
+
 apiRoutes.post('/createUser', function(req, res){
     var newUser = new User({
         name: req.body.name,
@@ -122,7 +137,7 @@ apiRoutes.post('/createUser', function(req, res){
     });
 });
 
-apiRoutes.delete('/deleteUser', function(req, res){
+apiRoutes.delete('/removeUser', function(req, res){
     User.findOne({'name': req.body.userNameToBeRemoved}).remove(function(err, doc){
         if (err) throw err;
         res.json({success: true});
