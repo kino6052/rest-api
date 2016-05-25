@@ -7,6 +7,7 @@ var mongoose = require('mongoose');
 var jwt = require('jsonwebtoken');
 var config = require('./config');
 var User = require('./models/user');
+var auxilaryService = require('./services/auxilary');
 
 var port = process.env.PORT || 8080;
 mongoose.connect(config.database);
@@ -20,36 +21,12 @@ app.get('/', function(req, res){
     res.send('Hello! The API is at http://localhost' + port + '/api');
 });
 
+// Routes for the API
 var apiRoutes = express.Router();
 
 apiRoutes.get('/', function(req, res){
    res.json({
        'message': 'REST API for Your Next App!'
-   });
-});
-
-apiRoutes.use(function (req, res, next){
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
-    if (token) {
-        jwt.verify(token, app.get('superSecret'), function(err, decoded){
-            if (err) {
-                return res.json({success: false, message: 'Failed to Authenticate Token.'});
-            } else {
-                req.decoded = decoded;
-                next();
-            }
-        });
-    } else {
-        return res.status(403).send({
-            success: false,
-            message: 'No Token Provided.'
-        });
-    }
-});
-
-apiRoutes.get('/users', function(req, res){
-   User.find({}, function(err, users){
-       res.json(users);
    });
 });
 
@@ -78,6 +55,71 @@ apiRoutes.post('/authenticate', function(req, res){
     });
 });
 
+// Auth Middleware
+apiRoutes.use(function (req, res, next){
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    if (token) {
+        jwt.verify(token, app.get('superSecret'), function(err, decoded){
+            if (err) {
+                return res.json({success: false, message: 'Failed to Authenticate Token.'});
+            } else {
+                req.decoded = decoded;
+                next();
+            }
+        });
+    } else {
+        return res.status(403).send({
+            success: false,
+            message: 'No Token Provided.'
+        });
+    }
+});
+
+apiRoutes.get('/users', function(req, res){
+   User.find({}, function(err, users){
+       res.json({users: users});
+   });
+});
+
+apiRoutes.get('/getUserName', function(req, res){
+    var name = auxilaryService.findValueOfObjectParameter(req.decoded, '_doc').name;
+    res.json({name: name});
+});
+
+apiRoutes.get('/:userName/data', function(req, res){
+   User.findOne({'name': req.param('userName')}, function(err, user){
+       if (user.data) res.json({data: user.data});
+       else res.json({data: {}});
+   });
+});
+
+apiRoutes.put('/:userName/data', function(req, res) {
+   User.findOneAndUpdate({'name': req.param('userName')}, {$set: {data: req.body.data}}, function(err, doc){
+       if (err) return res.send(500, {error: err});
+       return res.send({success: true});
+   });
+});
+
+apiRoutes.post('/createUser', function(req, res){
+    var newUser = new User({
+        name: req.body.name,
+        password: req.body.password,
+        admin: false,
+        data: {}
+    });
+    newUser.save(function(err){
+        if (err) throw err;
+        res.json({success: true});
+    });
+});
+
+apiRoutes.delete('/deleteUser', function(req, res){
+    User.findOne({'name': req.body.userNameToBeRemoved}).remove(function(err, doc){
+        if (err) throw err;
+        res.json({success: true});
+    });
+});
+
 app.use('/api', apiRoutes);
 
 app.listen(port);
@@ -87,10 +129,10 @@ app.get('/setup', function(req, res){
     var iolearn = new User({
         name: 'kino6052',
         password: 'cat8dog123!',
-        admin: true
+        admin: true,
+        data: {}
     });
     iolearn.save(function(err){
-        console.log('here');
         if (err)
             throw err;
         console.log('User saved successfully');
