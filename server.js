@@ -93,7 +93,7 @@ apiRoutes.get('/:userName/tasks', function(req, res){
    });
 });
 
-apiRoutes.put('/:userName/addTask', function(req, res) {
+apiRoutes.post('/:userName/addTask', function(req, res) {
    var taskObject = {task: req.body.task, completed: false};
    User.findOneAndUpdate({'name': req.param('userName')}, {$addToSet: {data: taskObject}}, function(err, doc){
        if (err) return res.send(500, {error: err});
